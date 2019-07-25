@@ -1,0 +1,7 @@
+*.afl
+*.taint
+*.fast
+*.eclipser
+
+*.o
+*.so
