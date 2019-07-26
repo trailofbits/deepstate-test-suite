@@ -26,11 +26,11 @@ extern "C" {
 	#undef SHA256_CTX
 	#undef SHA512_CTX
 
-	#include "trezor_crypto/trezor-crypto/ecdsa.h"
-	#include "trezor_crypto/trezor-crypto/hasher.h"
-	#include "trezor_crypto/trezor-crypto/rand.h"
-	#include "trezor_crypto/trezor-crypto/secp256k1.h"
-	#include "trezor_crypto/trezor-crypto/memzero.h"
+	#include "trezor-crypto/ecdsa.h"
+	#include "trezor-crypto/hasher.h"
+	#include "trezor-crypto/rand.h"
+	#include "trezor-crypto/secp256k1.h"
+	#include "trezor-crypto/memzero.h"
 }
 
 using namespace deepstate;

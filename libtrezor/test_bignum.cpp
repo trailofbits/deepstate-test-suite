@@ -15,11 +15,11 @@
 #include <deepstate/DeepState.hpp>
 
 extern "C" {
-	#include "check_mem.h"
-	#include "options.h"
-	#include "address.h"
-	#include "bignum.h"
-	#include "memzero.h"
+	#include "trezor-crypto/check_mem.h"
+	#include "trezor-crypto/options.h"
+	#include "trezor-crypto/address.h"
+	#include "trezor-crypto/bignum.h"
+	#include "trezor-crypto/memzero.h"
 }
 
 #define FROMHEX_MAXLEN 512
