@@ -19,6 +19,8 @@ extern "C" {
 	#include "trezor-crypto/options.h"
 	#include "trezor-crypto/address.h"
 	#include "trezor-crypto/bignum.h"
+    #include "trezor-crypto/ecdsa.h"
+    #include "trezor-crypto/secp256k1.h"
 	#include "trezor-crypto/memzero.h"
 }
 
@@ -277,12 +279,12 @@ TEST(TrezorCryptoBignum, ReadBigLittle) {
 
   char * in_buf = DeepState_CStrUpToLen(FROMHEX_MAXLEN, "abcdef0123456789");
 
-  LOG(DEBUG) << "Big endian:" << in_buf;
+  LOG(DEBUG) << "Big endian: " << in_buf;
   bn_read_be(fromhex(in_buf), &be);
 
   str_reverse(in_buf);
 
-  LOG(DEBUG) << "Little endian:" << in_buf;
+  LOG(DEBUG) << "Little endian: " << in_buf;
   bn_read_le(fromhex(in_buf), &le);
 
   ASSERT_EQ(bn_is_equal(&be, &le), 1)
@@ -555,18 +557,6 @@ TEST(TrezorCryptoBignum, Copy) {
 }
 
 
-// TODO:
-TEST(TrezorCryptoBignum, IsEven) {
-
-
-}
-
-// TODO:
-TEST(TrezorCryptoBignum, IsOdd) {
-
-
-}
-
 /*
  * IsEvenVectors
  *
@@ -602,7 +592,7 @@ TEST(TrezorCryptoBignum, IsEvenVectors) {
  *  Concrete test vectors for testing odd bignums.
  *
 */
-TEST(TrezorCryptoBignum, TestBignumIsOdd) {
+TEST(TrezorCryptoBignum, IsOddVectors) {
   bignum256 a;
 
   bn_read_be(
@@ -625,7 +615,13 @@ TEST(TrezorCryptoBignum, TestBignumIsOdd) {
 }
 
 
-TEST(TrezorCryptoBignum, TestBignumIsLess) {
+/*
+ * IsLessVectors
+ *
+ *  Concrete test vectors for testing lesser equality.
+ *
+*/
+TEST(TrezorCryptoBignum, IsLessVectors) {
   bignum256 a;
   bignum256 b;
 
@@ -645,89 +641,83 @@ TEST(TrezorCryptoBignum, TestBignumIsLess) {
   ASSERT_EQ(bn_is_less(&b, &a), 0);
 }
 
-TEST(TrezorCryptoBignum, TestBignumBitcount) {
-  bignum256 a, b;
 
-  bn_zero(&a);
-  ASSERT_EQ(bn_bitcount(&a), 0);
-
-  bn_one(&a);
-  ASSERT_EQ(bn_bitcount(&a), 1);
-
-  // test for 10000 and 11111 when i=5
-  for (int i = 2; i <= 256; i++) {
-    bn_one(&a);
-    bn_one(&b);
-    for (int j = 2; j <= i; j++) {
-      bn_lshift(&a);
-      bn_lshift(&b);
-      bn_addi(&b, 1);
-    }
-    ASSERT_EQ(bn_bitcount(&a), i);
-    ASSERT_EQ(bn_bitcount(&b), i);
-  }
-
-  bn_read_uint32(0x3fffffff, &a);
-  ASSERT_EQ(bn_bitcount(&a), 30);
-
-  bn_read_uint32(0xffffffff, &a);
-  ASSERT_EQ(bn_bitcount(&a), 32);
-
-  bn_read_be(
-      fromhex(
-          "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"),
-      &a);
-  ASSERT_EQ(bn_bitcount(&a), 256);
-}
-
-TEST(TrezorCryptoBignum, TestBignumDigitCount) {
+/*
+ * AddMod
+ *
+ *  Tests between manual bignum add + mod compared to addmod.
+ *
+*/
+TEST(TrezorCryptoBignum, AddMod) {
   bignum256 a;
+  bignum256 b;
 
-  bn_zero(&a);
-  ASSERT_EQ(bn_digitcount(&a), 1);
+  const ecdsa_curve *curve = &secp256k1;
 
-  // test for (10^i) and (10^i) - 1
-  uint64_t m = 1;
-  for (int i = 0; i <= 19; i++, m *= 10) {
-    bn_read_uint64(m, &a);
-    ASSERT_EQ(bn_digitcount(&a), i + 1);
+  char * in_buf = DeepState_CStrUpToLen(FROMHEX_MAXLEN, "abcdef0123456789");
+  bn_read_be(fromhex(in_buf), &a);
+  bn_copy(&a, &b);
 
-    uint64_t n = m - 1;
-    bn_read_uint64(n, &a);
-    ASSERT_EQ(bn_digitcount(&a), n == 0 ? 1 : i);
-  }
+  // a = a + a
+  // a = a mod prime
+  bn_add(&a, &a);
+  bn_mod(&a, &curve->prime);
 
-  bn_read_uint32(0x3fffffff, &a);
-  ASSERT_EQ(bn_digitcount(&a), 10);
+  // a = a + a mod prime
+  bn_addmod(&b, &b, &curve->prime);
 
-  bn_read_uint32(0xffffffff, &a);
-  ASSERT_EQ(bn_digitcount(&a), 10);
-
-  bn_read_be(
-      fromhex(
-          "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"),
-      &a);
-  ASSERT_EQ(bn_digitcount(&a), 78);
+  ASSERT_EQ(bn_is_equal(&a, &b), 1);
 }
 
 
-TEST(TrezorCryptoBignum, Format64) {
-  char buf[128], str[128];
-  int r;
+/*
+ * SubZero
+ *
+ *  Tests is bignum sub of a bignum and itself equals zero
+ *
+*/
+TEST(TrezorCryptoBignum, SubZero) {
+  bignum256 a;
+  bignum256 res;
 
-  uint64_t m = 1;
-  for (int i = 0; i <= 19; i++, m *= 10) {
-    r = bn_format_uint64(m, NULL, NULL, 0, 0, false, buf, sizeof(buf));
-    ASSERT_EQ(r, strlen(str));
-    ASSERT_EQ(buf, str);
+  const ecdsa_curve *curve = &secp256k1;
 
-    uint64_t n = m - 1;
-    r = bn_format_uint64(n, NULL, NULL, 0, 0, false, buf, sizeof(buf));
-    ASSERT_EQ(r, strlen(str));
-    ASSERT_EQ(buf, str);
-  }
+  char * in_buf = DeepState_CStrUpToLen(FROMHEX_MAXLEN, "abcdef0123456789");
+  bn_read_be(fromhex(in_buf), &a);
+
+  bn_subtract(&a, &a, &res);
+  ASSERT_EQ(bn_is_zero(&res), 1);
 }
 
+
+/*
+ * FastMod
+ *
+ *  Tests is bignum sub of a bignum and itself equals zero
+ *
+*/
+TEST(TrezorCryptoBignum, FastMod) {
+  bignum256 a;
+  bignum256 b;
+
+  const ecdsa_curve *curve = &secp256k1;
+
+  char * in_buf = DeepState_CStrUpToLen(FROMHEX_MAXLEN, "abcdef0123456789");
+  bn_read_be(fromhex(in_buf), &a);
+  bn_copy(&a, &b);
+
+  bn_mod(&a, &curve->prime);
+  bn_fast_mod(&b, &curve->prime);
+
+  ASSERT_EQ(bn_is_equal(&a, &b), 1);
+}
+
+/*
+ * FormatVectors
+ *
+ *  Concrete test vectors for testing bignum formatting.
+ *
+*/
 
 TEST(TrezorCryptoBignum, FormatVectors) {
   bignum256 a;
@@ -1042,38 +1032,4 @@ TEST(TrezorCryptoBignum, FormatVectors) {
   r = bn_format(&a, "prefix", "suffix", 10, 0, false, buf, 30);
   ASSERT_EQ(r, 0);
   ASSERT_EQ(buf, "prefix198552.9216486895suffix");
-}
-
-
-TEST(TrezorCryptoBignum, test_bignum_divmod) {
-  uint32_t r;
-  int i;
-
-  bignum256 a = {{0x3fffffff, 0x3fffffff, 0x3fffffff, 0x3fffffff, 0x3fffffff,
-                  0x3fffffff, 0x3fffffff, 0x3fffffff, 0xffff}};
-  uint32_t ar[] = {15, 14, 55, 29, 44, 24, 53, 49, 18, 55, 2,  28, 5,  4,  12,
-                   43, 18, 37, 28, 14, 30, 46, 12, 11, 17, 10, 10, 13, 24, 45,
-                   4,  33, 44, 42, 2,  46, 34, 43, 45, 28, 21, 18, 13, 17};
-
-  i = 0;
-  while (!bn_is_zero(&a) && i < 44) {
-    bn_divmod58(&a, &r);
-    ASSERT_EQ(r, ar[i]);
-    i++;
-  }
-  ASSERT_EQ(i, 44);
-
-  bignum256 b = {{0x3fffffff, 0x3fffffff, 0x3fffffff, 0x3fffffff, 0x3fffffff,
-                  0x3fffffff, 0x3fffffff, 0x3fffffff, 0xffff}};
-  uint32_t br[] = {935, 639, 129, 913, 7,   584, 457, 39, 564,
-                   640, 665, 984, 269, 853, 907, 687, 8,  985,
-                   570, 423, 195, 316, 237, 89,  792, 115};
-
-  i = 0;
-  while (!bn_is_zero(&b) && i < 26) {
-    bn_divmod1000(&b, &r);
-    ASSERT_EQ(r, br[i]);
-    i++;
-  }
-  ASSERT_EQ(i, 26);
 }

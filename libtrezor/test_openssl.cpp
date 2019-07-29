@@ -40,23 +40,14 @@ TEST(TrezorCrypto, Difftest) {
 
   uint8_t sig[64], pub_key33[33], pub_key65[65], priv_key[32], hash[32];
 
-  const ecdsa_curve *curve = &secp256k1;
-
   struct SHA256state_st sha256;
-  EC_GROUP *ecgroup;
 
-  ecgroup = EC_GROUP_new_by_curve_name(NID_secp256k1);
+  const ecdsa_curve *curve = &secp256k1;
+  EC_GROUP *ecgroup = EC_GROUP_new_by_curve_name(NID_secp256k1);
 
   int msg_len = 100;
   uint8_t * msg = (uint8_t *) DeepState_CStrUpToLen(100);
   LOG(TRACE) << msg;
-
-/*
-  uint8_t msg[256];
-  int msg_len = (random32() & 0xFF) + 1;
-  random_buffer(msg, msg_len);
-  LOG(TRACE) << msg;
-*/
 
   // new ECDSA key
   EC_KEY *eckey = EC_KEY_new();
@@ -70,7 +61,6 @@ TEST(TrezorCrypto, Difftest) {
   int bn_off = sizeof(priv_key) - BN_num_bytes(K);
   memzero(priv_key, bn_off);
   BN_bn2bin(K, priv_key + bn_off);
-
 
   // use our ECDSA signer to sign the message with the key
   ASSERT_EQ(ecdsa_sign(curve, HASHER_SHA2, priv_key, msg, msg_len, sig, NULL, NULL), 0) \

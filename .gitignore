@@ -6,4 +6,8 @@
 *.o
 *.so
 
+in/
+corpus/
+out/
 libtrezor/trezor-crypto
+
