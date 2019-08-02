@@ -5,9 +5,12 @@
 
 *.o
 *.so
+*.stdin
+*.input
 
 in/
-corpus/
 out/
-libtrezor/trezor-crypto
+
+trezor-crypto/trezor-crypto
+openssl/OpenSSL*
 
