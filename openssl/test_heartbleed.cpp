@@ -1,10 +1,17 @@
 // Copyright 2016 Google Inc. All Rights Reserved.
 // Licensed under the Apache License, Version 2.0 (the "License");
-#include <openssl/ssl.h>
-#include <openssl/err.h>
-#include <assert.h>
-#include <stdint.h>
-#include <stddef.h>
+extern "C" {
+	#include <openssl/ssl.h>
+	#include <openssl/err.h>
+	#include <assert.h>
+	#include <stdint.h>
+	#include <stddef.h>
+}
+
+#include <deepstate/DeepState.hpp>
+
+using namespace deepstate;
+
 
 SSL_CTX *Init() {
   SSL_library_init();
@@ -23,14 +30,21 @@ SSL_CTX *Init() {
                                      SSL_FILETYPE_PEM));
   return sctx;
 }
-extern "C" int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
+
+
+TEST(OpenSSL, Heartbleed) {
+
   static SSL_CTX *sctx = Init();
   SSL *server = SSL_new(sctx);
+
   BIO *sinbio = BIO_new(BIO_s_mem());
   BIO *soutbio = BIO_new(BIO_s_mem());
+
   SSL_set_bio(server, sinbio, soutbio);
   SSL_set_accept_state(server);
+
   BIO_write(sinbio, Data, Size);
+
   SSL_do_handshake(server);
   SSL_free(server);
   return 0;

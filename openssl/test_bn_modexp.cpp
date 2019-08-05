@@ -1,5 +1,3 @@
-// Copyright 2016 Google Inc. All Rights Reserved.
-// Licensed under the Apache License, Version 2.0 (the "License");
 // Find CVE-2015-3193. Derived from
 // https://github.com/hannob/bignum-fuzz/blob/master/CVE-2015-3193-openssl-vs-gcrypt-modexp.c
 /* Fuzz-compare the OpenSSL function BN_mod_exp() and the libgcrypt function gcry_mpi_powm().
@@ -139,9 +137,9 @@ TEST(OpenSSL, ModExpDiff) {
 
 	ASSERT_EQ(l1 + l2 + l3, len - 2);
 
-    a = const_cast<unsigned char*>(Data)+2;
-	b = const_cast<unsigned char*>(Data)+2+l1;
-	c = const_cast<unsigned char*>(Data)+2+l1+l2;
+    a = const_cast<unsigned char *> (Data) + 2;
+	b = const_cast<unsigned char *> (Data) + 2 + l1;
+	c = const_cast<unsigned char *> (Data) + 2 + l1 +l2;
 
 	bntest(a, l1, b, l2, c, l3, &openssl_results);
 	gcrytest(a, l1, b, l2, c, l3, &gcrypt_results);
