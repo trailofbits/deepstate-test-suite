@@ -4,6 +4,7 @@
 *.eclipser
 
 *.o
+*.a
 *.so
 *.stdin
 *.input
@@ -13,5 +14,5 @@ seeds/
 out/
 
 trezor-crypto/trezor-crypto
-openssl/OpenSSL*
+openssl/openssl*
 

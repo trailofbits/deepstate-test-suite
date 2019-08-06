@@ -1,13 +1,11 @@
-// Find CVE-2015-3193. Derived from
-// https://github.com/hannob/bignum-fuzz/blob/master/CVE-2015-3193-openssl-vs-gcrypt-modexp.c
-/* Fuzz-compare the OpenSSL function BN_mod_exp() and the libgcrypt function gcry_mpi_powm().
+/*
+ * test_bn_modexp (CVE-2015-3139)
  *
- * To use this you should compile both libgcrypt and openssl with american fuzzy lop and then statically link everything together, e.g.:
- * afl-clang-fast -o [output] [input] libgcrypt.a libcrypto.a -lgpg-error
+ *   Defines test harness for discovering BN_mod_exp
+ *	 carry mispropagation vulnerability in OpenSSL 1.0.2d
  *
- * Input is a binary file, the first bytes will decide how the rest of the file will be split into three bignums.
- *
- * by Hanno Böck, license CC0 (public domain)
+ *	 Original Source by: Hanno Bock
+ *	 Derived from: https://github.com/google/fuzzer-test-suite/blob/master/openssl-1.0.2d/target.cc
  */
 
 extern "C" {
@@ -47,16 +45,26 @@ void freeres(struct big_results *res) {
 char *gcrytostring(gcry_mpi_t in) {
 	char *a, *b;
 	size_t i;
-	size_t j=0;
+	size_t j = 0;
+
 	gcry_mpi_aprint(GCRYMPI_FMT_HEX, (unsigned char**) &a, &i, in);
-	while(a[j]=='0' && j<(i-2)) j++;
-	if ((j%2)==1) j--;
-	if (strncmp(&a[j],"00",2)==0) j++;
-	b=(char*)malloc(i-j);
+
+	while (a[j] == '0' && j < (i-2))
+		j++;
+
+	if ((j%2)==1)
+		j--;
+
+	if (strncmp(&a[j],"00",2) == 0)
+		j++;
+
+	b = (char *) malloc(i-j);
+
 	strcpy(b, &a[j]);
 	free(a);
 	return b;
 }
+
 
 /* test gcry functions from libgcrypt */
 void gcrytest(unsigned char* a_raw, int a_len, unsigned char* b_raw, int b_len, unsigned char* c_raw, int c_len, struct big_results *res) {
@@ -109,20 +117,26 @@ void bntest(unsigned char* a_raw, int a_len, unsigned char* b_raw, int b_len, un
 	BN_CTX_free(bctx);
 }
 
+
 TEST(OpenSSL, ModExpDiff) {
 
 	size_t len, l1, l2, l3;
 	unsigned int divi1, divi2;
 	unsigned char *a, *b, *c;
 
-	unsigned char *data = DeepState_CStrUpToLen(256);
+	unsigned char *data = (unsigned char *) DeepState_CStrUpToLen(1000);
+
+	len = sizeof(data);
+    ASSERT_NE(len, 5);
+
+	LOG(TRACE) << "Initializing big_results structs";
 
 	struct big_results openssl_results = {
-		"openssl", 0, 0, 0, 0
+		(char *) "openssl", 0, 0, 0, 0
 	};
 
 	struct big_results gcrypt_results = {
-		"libgcrypt", 0, 0, 0, 0
+		(char *) "libgcrypt", 0, 0, 0, 0
 	};
 
 	divi1 = data[0];
@@ -133,18 +147,24 @@ TEST(OpenSSL, ModExpDiff) {
 
 	l1 = (len - 2) * divi1 / 256;
 	l2 = (len - 2 - l1) * divi2 / 256;
-	l3 = (len-2-l1-l2);
+	l3 = (len - 2 - l1 - l2);
 
+	LOG(TRACE) << "Asserting length of buffer and spliced up inputs";
 	ASSERT_EQ(l1 + l2 + l3, len - 2);
 
-    a = const_cast<unsigned char *> (Data) + 2;
-	b = const_cast<unsigned char *> (Data) + 2 + l1;
-	c = const_cast<unsigned char *> (Data) + 2 + l1 +l2;
+    a = data + 2;
+	b = data + 2 + l1;
+	c = data + 2 + l1 +l2;
 
+	LOG(TRACE) << "Calling openssl modular exponentiation";
 	bntest(a, l1, b, l2, c, l3, &openssl_results);
+
+	LOG(TRACE) << "Calling gcrypt mod exponentiation";
 	gcrytest(a, l1, b, l2, c, l3, &gcrypt_results);
 
-	ASSERT_EQ(strcmp(openssl_results.exptmod, gcrypt_results.exptmod), 0);
+	LOG(TRACE) << "Performing assertion differential test";
+	ASSERT_EQ(strcmp(openssl_results.exptmod, gcrypt_results.exptmod), 0)
+		<< "modular exponentiation did not equal";
 
 	freeres(&openssl_results);
 	freeres(&gcrypt_results);

@@ -1,5 +1,12 @@
-// Copyright 2016 Google Inc. All Rights Reserved.
-// Licensed under the Apache License, Version 2.0 (the "License");
+/*
+ * test_heartbleed (CVE-2014-0160)
+ *
+ *   Reproduces heap buffer-overflow that induces Heartbleed vulnerability in
+ *	 OpenSSL 1.0.1f.
+ *
+ *   Derived from: https://github.com/google/fuzzer-test-suite/blob/master/openssl-1.0.1f/target.cc
+ */
+
 extern "C" {
 	#include <openssl/ssl.h>
 	#include <openssl/err.h>

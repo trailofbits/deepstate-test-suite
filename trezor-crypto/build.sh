@@ -12,21 +12,6 @@ if [ ! -d "trezor-crypto" ]; then
   cd ..
 fi
 
-
-# Clone and build OpenSSL
-if [ ! -d "openssl" ]; then
-  git clone https://github.com/openssl/openssl.git
-  cd openssl/
-
-  ./config
-  CC=afl-clang-fast CXX=afl-clang-fast++ make
-  cp libssl.a ../libssl_afl.a
-  cp libcrypto.a ../libcrypto_afl.a
-
-  cd ..
-fi
-
-
 # Build with DeepState compiler wrappers
 WORKSPACE="${1:-bins}"
 TESTS=("bignum" "properties" "openssl")
@@ -35,7 +20,7 @@ mkdir "$WORKSPACE"
 for test in "${TESTS[@]}"; do
 
   printf "\nBuilding test_$test.cpp with AFL\n"
-  deepstate-afl --compile_test test_"$test".cpp --compiler_args="libtrezor-crypto-afl.so libssl_afl.a libcrypto_afl.a" --out_test_name "$WORKSPACE"/"$test"
+  deepstate-afl --compile_test test_"$test".cpp --compiler_args="libtrezor-crypto-afl.so libssl_afl.so libcrypto_afl.so" --out_test_name "$WORKSPACE"/"$test"
 
   printf "\nBuilding test_$test.cpp with Angora\n"
   deepstate-angora --compile_test test_"$test".cpp --compiler_args="-ltrezor-crypto -lssl -lcrypto" --out_test_name "$WORKSPACE"/"$test" \
