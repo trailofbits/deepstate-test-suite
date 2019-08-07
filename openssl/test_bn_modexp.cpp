@@ -2,7 +2,7 @@
  * test_bn_modexp (CVE-2015-3139)
  *
  *   Defines test harness for discovering BN_mod_exp
- *	 carry mispropagation vulnerability in OpenSSL 1.0.2d
+ *	 carry mispropagation vulnerability in OpenSSL 1.0.2d by differentially testing against libgcrypt
  *
  *	 Original Source by: Hanno Bock
  *	 Derived from: https://github.com/google/fuzzer-test-suite/blob/master/openssl-1.0.2d/target.cc
@@ -21,17 +21,15 @@ extern "C" {
 
 using namespace deepstate;
 
-#define MAXBUF 1000000
+#define MAXBUF 1000
 
 
 struct big_results {
-	char *name;
 	char *a;
 	char *b;
 	char *c;
 	char *exptmod;
 };
-
 
 
 void freeres(struct big_results *res) {
@@ -120,24 +118,31 @@ void bntest(unsigned char* a_raw, int a_len, unsigned char* b_raw, int b_len, un
 
 TEST(OpenSSL, ModExpDiff) {
 
+	LOG(INFO) << OPENSSL_VERSION_TEXT;
+
 	size_t len, l1, l2, l3;
 	unsigned int divi1, divi2;
 	unsigned char *a, *b, *c;
 
-	unsigned char *data = (unsigned char *) DeepState_CStrUpToLen(1000);
-
-	len = sizeof(data);
-    ASSERT_NE(len, 5);
-
 	LOG(TRACE) << "Initializing big_results structs";
 
 	struct big_results openssl_results = {
-		(char *) "openssl", 0, 0, 0, 0
+		0, 0, 0, 0
 	};
 
 	struct big_results gcrypt_results = {
-		(char *) "libgcrypt", 0, 0, 0, 0
+		0, 0, 0, 0
 	};
+
+	unsigned char data[MAXBUF];
+
+	for (int i = 0; i < MAXBUF; i++)
+		data[i] = DeepState_UChar();
+
+    len = strlen((char *) data);
+	LOG(TRACE) << "buffer instantiated with len: " << len;
+
+	ASSERT_GT(len, 5) << "buffer length is less than 5";
 
 	divi1 = data[0];
 	divi2 = data[1];
@@ -154,10 +159,15 @@ TEST(OpenSSL, ModExpDiff) {
 
     a = data + 2;
 	b = data + 2 + l1;
-	c = data + 2 + l1 +l2;
+	c = data + 2 + l1 + l2;
 
 	LOG(TRACE) << "Calling openssl modular exponentiation";
 	bntest(a, l1, b, l2, c, l3, &openssl_results);
+
+	CHECK_NE(strcmp(openssl_results.a, "0"), 0)
+		<< "OpenSSL a value is 0";
+	CHECK_NE(strcmp(openssl_results.c, "0"), 0)
+		<< "OpenSSL c value is 0";
 
 	LOG(TRACE) << "Calling gcrypt mod exponentiation";
 	gcrytest(a, l1, b, l2, c, l3, &gcrypt_results);

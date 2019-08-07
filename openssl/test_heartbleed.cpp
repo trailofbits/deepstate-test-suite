@@ -41,6 +41,9 @@ SSL_CTX *Init() {
 
 TEST(OpenSSL, Heartbleed) {
 
+  char * data = DeepState_CStrUpToLen(512);
+  size_t len = strlen(data);
+
   static SSL_CTX *sctx = Init();
   SSL *server = SSL_new(sctx);
 
@@ -50,7 +53,7 @@ TEST(OpenSSL, Heartbleed) {
   SSL_set_bio(server, sinbio, soutbio);
   SSL_set_accept_state(server);
 
-  BIO_write(sinbio, Data, Size);
+  BIO_write(sinbio, data, len);
 
   SSL_do_handshake(server);
   SSL_free(server);

@@ -1,6 +1,6 @@
 # openssl
 
-> Original source: https://github.com/google/fuzzer-test-suite/tree/master/openssl-1.0.2d
+> Original source: https://github.com/google/fuzzer-test-suite/
 
 | Test                  | Version          | Description                                                       | Known Vulnerabilities |   |
 |-----------------------|------------------|-------------------------------------------------------------------|-----------------------|---|

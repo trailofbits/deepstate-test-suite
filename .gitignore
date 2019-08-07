@@ -12,6 +12,7 @@
 in/
 seeds/
 out/
+*_out/
 
 trezor-crypto/trezor-crypto
 openssl/openssl*
