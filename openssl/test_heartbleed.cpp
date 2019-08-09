@@ -25,16 +25,13 @@ SSL_CTX *Init() {
   SSL_load_error_strings();
   ERR_load_BIO_strings();
   OpenSSL_add_all_algorithms();
+
   SSL_CTX *sctx;
-  assert (sctx = SSL_CTX_new(TLSv1_method()));
-  /* These two file were created with this command:
-      openssl req -x509 -newkey rsa:512 -keyout server.key \
-     -out server.pem -days 9999 -nodes -subj /CN=a/
-  */
-  assert(SSL_CTX_use_certificate_file(sctx, "runtime/server.pem",
-                                      SSL_FILETYPE_PEM));
-  assert(SSL_CTX_use_PrivateKey_file(sctx, "runtime/server.key",
-                                     SSL_FILETYPE_PEM));
+  ASSERT_EQ(sctx, SSL_CTX_new(TLSv1_method()));
+  ASSERT_EQ(SSL_CTX_use_certificate_file(sctx, "runtime/server.pem",
+                                      SSL_FILETYPE_PEM), 0);
+  ASSERT_EQ(SSL_CTX_use_PrivateKey_file(sctx, "runtime/server.key",
+                                     SSL_FILETYPE_PEM), 0);
   return sctx;
 }
 
@@ -57,5 +54,4 @@ TEST(OpenSSL, Heartbleed) {
 
   SSL_do_handshake(server);
   SSL_free(server);
-  return 0;
 }

@@ -23,6 +23,10 @@ using namespace deepstate;
 
 #define MAXBUF 1000
 
+static inline
+unsigned char * DeepState_UCStrUpToLen(size_t max_len, const char * allowed = 0) {
+	return (unsigned char *) DeepState_CStrUpToLen(max_len, allowed);
+}
 
 struct big_results {
 	char *a;
@@ -89,6 +93,7 @@ void gcrytest(unsigned char* a_raw, int a_len, unsigned char* b_raw, int b_len, 
 	gcry_mpi_release(res1);
 }
 
+
 /* test bn functions from openssl/libcrypto */
 void bntest(unsigned char* a_raw, int a_len, unsigned char* b_raw, int b_len, unsigned char* c_raw, int c_len, struct big_results *res) {
 	BN_CTX *bctx = BN_CTX_new();
@@ -134,12 +139,15 @@ TEST(OpenSSL, ModExpDiff) {
 		0, 0, 0, 0
 	};
 
+	unsigned char *data = DeepState_UCStrUpToLen(MAXBUF);
+
+/*
 	unsigned char data[MAXBUF];
 
 	for (int i = 0; i < MAXBUF; i++)
 		data[i] = DeepState_UChar();
+*/
 
-    len = strlen((char *) data);
 	LOG(TRACE) << "buffer instantiated with len: " << len;
 
 	ASSERT_GT(len, 5) << "buffer length is less than 5";
@@ -164,9 +172,9 @@ TEST(OpenSSL, ModExpDiff) {
 	LOG(TRACE) << "Calling openssl modular exponentiation";
 	bntest(a, l1, b, l2, c, l3, &openssl_results);
 
-	CHECK_NE(strcmp(openssl_results.a, "0"), 0)
+	ASSERT_NE(strcmp(openssl_results.a, "0"), 0)
 		<< "OpenSSL a value is 0";
-	CHECK_NE(strcmp(openssl_results.c, "0"), 0)
+	ASSERT_NE(strcmp(openssl_results.c, "0"), 0)
 		<< "OpenSSL c value is 0";
 
 	LOG(TRACE) << "Calling gcrypt mod exponentiation";

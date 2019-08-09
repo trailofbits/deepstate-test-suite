@@ -16,4 +16,5 @@ out/
 
 trezor-crypto/trezor-crypto
 openssl/openssl*
+json/json
 

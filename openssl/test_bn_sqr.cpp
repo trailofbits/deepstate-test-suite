@@ -25,10 +25,7 @@ TEST(OpenSSL, SqrMultDiff) {
 	LOG(INFO) << OPENSSL_VERSION_TEXT;
 
     size_t len;
-    unsigned char in[MAXLEN];
-
-	for (int i = 0; i < MAXLEN; i++)
-		in[i] = DeepState_UChar();
+    unsigned char * in = (unsigned char *) DeepState_CStrUpToLen(MAXLEN);
 
 	len = strlen((char *) in);
 	LOG(TRACE) << "Length of input buffer: " << len;
