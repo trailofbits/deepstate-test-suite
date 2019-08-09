@@ -1,3 +1,12 @@
+/*
+ * test_tweetnacl_bug.cpp
+ *
+ *   Tests a carry mis-propagation bug
+ *	 in an older version of TweetNacl, induced
+ *	 in the `pack25519` function for Curve25519
+ *   group operations
+ */
+
 extern "C" {
 	#include <stdio.h>
 	#include <stdlib.h>
@@ -14,25 +23,23 @@ using namespace deepstate;
 #define FOR(i,n) for (i = 0;i < n;++i)
 #define sv static void
 
-extern "C" {
-	typedef unsigned char u8;
-	typedef unsigned long u32;
-	typedef unsigned long long u64;
-	typedef long long i64;
-	typedef i64 gf[16];
+typedef unsigned char u8;
+typedef unsigned long u32;
+typedef unsigned long long u64;
+typedef long long i64;
+typedef i64 gf[16];
 
-	static u8
-	  _0[16],
-	  _9[32] = {9};
-	static gf
-	  gf0,
-	  gf1 = {1},
-	  _121665 = {0xDB41,1};
-	static int fd = -1;
-}
+static u8
+  _0[16],
+  _9[32] = {9};
+static gf
+  gf0,
+  gf1 = {1},
+  _121665 = {0xDB41,1};
+static int fd = -1;
 
-void randombytes(unsigned char *x, unsigned long long xlen)
-{
+
+void randombytes(unsigned char *x, unsigned long long xlen) {
   int i;
 
   if (fd == -1) {
@@ -57,15 +64,6 @@ void randombytes(unsigned char *x, unsigned long long xlen)
   }
 }
 
-
-static void print(const u8 *b, int l) {
-  int i;
-
-  for (i = 0; i < l; ++i) {
-    printf("%02x", b[i]);
-  }
-  printf("\n");
-}
 
 void hex_to_bytes(unsigned char *b, const unsigned char *s) {
   int i;
@@ -285,6 +283,8 @@ static int check(const u8 n[32]) {
   u8 pk1[32];
   u8 pk2[32];
 
+  /* last parameter specifies whether we should induce the code
+	 path with the fault or not */
   crypto_scalarmult_base(pk1, n, 1);
   crypto_scalarmult_base(pk2, n, 0);
 
@@ -292,12 +292,11 @@ static int check(const u8 n[32]) {
   return ret;
 }
 
+
 TEST(TweetNacl, CarryBug) {
   unsigned char n[32];
   unsigned char * in = (unsigned char *) DeepState_CStr(100);
 
-  printf("%s\n", in);
   hex_to_bytes(n, in);
-
   ASSERT_EQ(check(n), 0);
 }
