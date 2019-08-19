@@ -93,7 +93,7 @@ TEST(TrezorCrypto, Secp256k1_PointMult)
 	LOG(TRACE) << "Initialized symbolic input";
 
 	memcpy(pub_key, fromhex((const char *) in), 33);
-	DeepState_Assert(pub_key[0] == 0x04);
+	ASSERT(pub_key[0] == 0x04);
 	LOG(TRACE) << "Converted hex to raw and added constraint";
 
 	res = ecdsa_read_pubkey(curve, pub_key, &p);
@@ -120,7 +120,7 @@ TEST(TrezorCrypto, Nist256p1_PointMult)
 	LOG(TRACE) << "Initialized symbolic input";
 
 	memcpy(pub_key, fromhex((const char *) in), 33);
-	DeepState_Assert(pub_key[0] == 0x04);
+	ASSERT(pub_key[0] == 0x04);
 	LOG(TRACE) << "Converted hex to raw and added constraint";
 
 	res = ecdsa_read_pubkey(curve, pub_key, &p);

@@ -6,8 +6,13 @@ if [ ! -d "trezor-crypto" ]; then
   cd trezor-crypto/
   cp options.h ed25519-donna/
 
+  CC=clang CXX=clang++ make
+  cp tests/libtrezor-crypto.so ../libtrezor-crypto.so
+  make clean
+
   CC=afl-clang-fast CXX=afl-clang-fast++ make
   cp tests/libtrezor-crypto.so ../libtrezor-crypto-afl.so
+  make clean
 
   cd ..
 fi
@@ -19,10 +24,13 @@ TESTS=("bignum" "properties" "openssl")
 mkdir "$WORKSPACE"
 for test in "${TESTS[@]}"; do
 
+  printf "\nBuilding test_$test.cpp with Eclipser (uninstrumented binary)\n"
+  deepstate-eclipser --compile_test test_"$test".cpp --compiler_args="libtrezor-crypto.so libssl.so libcrypto.so" --out_test_name "$WORKSPACE"/"$test"
+
   printf "\nBuilding test_$test.cpp with AFL\n"
   deepstate-afl --compile_test test_"$test".cpp --compiler_args="libtrezor-crypto-afl.so libssl_afl.so libcrypto_afl.so" --out_test_name "$WORKSPACE"/"$test"
 
   printf "\nBuilding test_$test.cpp with Angora\n"
-  deepstate-angora --compile_test test_"$test".cpp --compiler_args="-ltrezor-crypto -lssl -lcrypto" --out_test_name "$WORKSPACE"/"$test" \
+  deepstate-angora --compile_test test_"$test".cpp --compiler_args="libtrezor-crypto.so -lssl -lcrypto" --out_test_name "$WORKSPACE"/"$test" \
 	  --ignore_calls /usr/lib/x86_64-linux-gnu/libssl.a:$PWD/trezor-crypto/tests/libtrezor-crypto.so:/usr/lib/x86_64-linux-gnu/libcrypto.a
 done
