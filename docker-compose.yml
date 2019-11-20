@@ -1,0 +1,14 @@
+version: "3"
+services:
+
+  # should be a "master" engine that spins up additional containers
+  # to isolate parallelized fuzzing processes
+  orchestrator:
+    build: ./orchestrator
+
+  # synchronize output reports with redis
+  redis:
+    image: "redis:5.0.6"
+    ports: ["6543"]
+
+
