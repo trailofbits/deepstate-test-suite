@@ -21,6 +21,12 @@ This is ideal for developers who want to:
 | tweetnacl     | 1				  |
 | json          | 1				  |
 
+## Architecture Design
+
+### Setup
+
+- `/tests`
+
 ## Contributions
 
 Contributions are welcome! Please make a pull request for any improvements to the existing test suites, or for any new tests you would like to contribute!

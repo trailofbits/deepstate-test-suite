@@ -1,8 +1,14 @@
+#!/usr/bin/env python3.6
 """
-analysis.py
+crash_analysis.py
 
-  Concrete instruction tracing with Manticore for DeepState tests
-  for debugging.
+    DESCRIPTION:
+        Auxiliary script that provides native ints couting support using Manticore in order
+        analyze DeepState test runtimes.
+
+    USAGE:
+
+        python3 crash_analysis.py BINARY
 
 """
 import sys
