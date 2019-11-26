@@ -12,11 +12,11 @@ import setuptools
 setuptools.setup(
     name="fuzzbed-cli",
     version="0.1",
-    description="CLI application for interfacing fuzzbed for containerized fuzzing.",
+    description="Command-line application for interfacing fuzzbed infrastructure for containerized testing.",
     url="https://github.com/trailofbits/fuzzbed",
-    entry_points={
-        "console_scripts": [
-            "fuzzbed-cli = fuzzbed-cli:main"
-        ]
-    }
+    author="Alan Cao",
+    author_email="alan.cao@trailofbits.com",
+    license="Apache-2.0",
+    packages=['cli'],
+    scripts=["bin/fuzzbed-cli.py"]
 )
