@@ -2,19 +2,15 @@
 *.taint
 *.fast
 *.eclipser
+*.hfuzz
 
 *.o
 *.a
 *.so
 *.stdin
 *.input
+*.pyc
 
-in/
-seeds/
 out/
 *_out/
-
-trezor-crypto/trezor-crypto
-openssl/openssl*
-json/json
-
+venv/

@@ -1,4 +1,4 @@
-# deepstate-test-suite
+# fuzzbed
 
 Automated continuous testing integration using DeepState
 
@@ -9,7 +9,7 @@ Automated continuous testing is a practice many security-minded folks have start
 This is ideal for developers who want to:
 
 * Perform A/B benchmarking with DeepState-powered tools.
-* Discover and/or reproduce bugs with DeepState-powered fuzzers / symbolic executors.
+* Discover and/or reproduce bugs with DeepState analysis executors.
 * Measure performance and "fuzzer diversity" with ensemble-based fuzzing.
 
 ## Available Tests
@@ -24,6 +24,10 @@ This is ideal for developers who want to:
 ## Architecture Design
 
 ### Setup
+
+- `/cli`
+
+- `/orchestrator`
 
 - `/tests`
 

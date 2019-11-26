@@ -13,7 +13,3 @@ services:
     build: ./orchestrator
     links:
       - redis
-
-
-
-

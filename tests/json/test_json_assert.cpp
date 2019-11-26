@@ -21,8 +21,8 @@ using namespace deepstate;
 
 TEST(JSON, AssertFail) {
 
-	unsigned char * data = (unsigned char *) DeepState_CStrUpToLen(MAXLEN);
-	size_t size = strlen((char *) data);
+    unsigned char * data = (unsigned char *) DeepState_CStrUpToLen(MAXLEN);
+    size_t size = strlen((char *) data);
 
     try {
         // step 1: parse input

@@ -1,2 +1,2 @@
 bootstrap:
-	docker build -t testbed ./orchestrator
+	docker build -t fuzzbed_orchestrator ./orchestrator
