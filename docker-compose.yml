@@ -3,13 +3,14 @@ services:
 
   # synchronize output reports with redis
   redis:
-    image: redis:5.0.6
+    image: redis:alpine
     ports:
-      - "6543"
+      - "6543:6543"
 
   # "master" engine that spins up additional containers
   # to isolate parallelized fuzzing processes
   orchestrator:
     build: ./orchestrator
+    command: something build
     links:
       - redis

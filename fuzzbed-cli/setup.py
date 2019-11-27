@@ -21,6 +21,7 @@ setuptools.setup(
     author_email = "alan.cao@trailofbits.com",
     license = "Apache-2.0",
     packages = ['fuzzbed_cli'],
+    install_requires = ['requests', 'mypy'],
     entry_points = {
         "console_scripts" : ["fuzzbed-cli = fuzzbed_cli.__main__:main"]
     }

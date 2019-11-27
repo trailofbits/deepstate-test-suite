@@ -40,24 +40,25 @@ def parse_args() -> argparse.Namespace:
     start_parser.add_argument("--target", type=str, required=True, help="Name of workspace to parse configuration and spin up container.")
     start_parser.add_argument("--job_name", type=str, default="", help="Name of worker job that deploys container for testing.")
 
-    # .. other arguments
-    args.add_argument("--override_env", type=str, help="Overrides the envvar that specifies the path to tests (default is $TESTBED).")
-
     return parser.parse_args()
 
 
 def main() -> int:
     args = parse_args()
 
-    client = Client(args.override_env)
+    client = Client()
 
-    # parse subcommands
     if args.command == "init":
         client.init_ws(args.name, args.num_tests)
 
     elif args.command == "list":
+        print(client.list_tests(args.job))
+
+    elif args.command == "ps":
+        client.processes()
 
     elif args.start == "start":
+        client.execute()
 
     else:
         parser.print_help(sys.stderr)
