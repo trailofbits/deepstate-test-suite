@@ -61,7 +61,7 @@ class Client(object):
         if ws_name not in self.test_paths:
             raise Exception("workspace directory not find in testbed path.")
 
-        ws_conf = Dict[str, str]
+        ws_conf: Dict[str, str] = dict()
         return ws_config
 
 
@@ -77,6 +77,8 @@ class Client(object):
 
         if ws_name in self.test_paths:
             raise Exception("workspace directory already exists in testbed path.")
+
+        os.mkdir(os.path.join(self.env + '/' + ws_name))
 
 
     def list_tests(job: Optional[str]) -> str:
