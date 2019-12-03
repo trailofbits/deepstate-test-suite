@@ -17,7 +17,7 @@ import argparse
 from fuzzbed_cli.client import Client
 
 
-def parse_args() -> argparse.Namespace:
+def main() -> int:
     parser = argparse.ArgumentParser(description="CLI application for interfacing fuzzbed")
     subparsers = parser.add_subparsers(dest="command")
 
@@ -25,7 +25,7 @@ def parse_args() -> argparse.Namespace:
     init_parser = subparsers.add_parser("init")
     init_parser.add_argument("-n", "--name", type=str, default="workspace", help="Name of testing workspace (default is `workspace`)")
     init_parser.add_argument("-t", "--num_tests", type=int, default=1, help="Number of tests to initialize in default harness (default is 1).")
-    init_parser.add_argument("-c", "--configuration", type=str, required=True, help="Defines the configuration file to be consumed for analysis.")
+    init_parser.add_argument("-c", "--config", type=str, required=True, help="Defines the configuration file to be consumed for analysis.")
 
     # `list` - outputs available testing workspaces and their contents.
     list_parser = subparsers.add_parser("list")
@@ -40,11 +40,7 @@ def parse_args() -> argparse.Namespace:
     start_parser.add_argument("--target", type=str, required=True, help="Name of workspace to parse configuration and spin up container.")
     start_parser.add_argument("--job_name", type=str, default="", help="Name of worker job that deploys container for testing.")
 
-    return parser.parse_args()
-
-
-def main() -> int:
-    args = parse_args()
+    args = parser.parse_args()
 
     client = Client()
 
@@ -57,7 +53,7 @@ def main() -> int:
     elif args.command == "ps":
         client.processes()
 
-    elif args.start == "start":
+    elif args.command == "start":
         client.execute()
 
     else:

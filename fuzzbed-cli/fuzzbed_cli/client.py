@@ -41,7 +41,7 @@ class Client(object):
             raise Exception("should not have multiple paths set with testbed envvar `${}`.".format(env))
 
         # initialize a default job name
-        self.job_name: str = "worker_" + "".join([random.choice(string.ascii_letters + string.digits) for n in xrange(5)])
+        self.job_name: str = "worker_" + "".join([random.choice(string.ascii_letters + string.digits) for n in range(5)])
 
         # testbed directory root
         self.env: str = env
@@ -50,7 +50,7 @@ class Client(object):
         self.test_paths: List[str] = [testdir[0] for testdir in os.walk(env)]
 
 
-    def _parse_ws(self, ws_name) -> Dict[str, str]:
+    def _parse_ws(self, ws_name: str) -> Dict[str, str]:
         """
         From an input workspace directory, parse out all of the necessary components of the workspace to pass back to the
         user for for further manipulation.
