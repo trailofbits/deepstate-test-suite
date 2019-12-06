@@ -11,6 +11,24 @@ templates.py
 DEFAULT_HARNESS = "test_default.cpp"
 
 
+MANIFEST_CONFIG = {
+    "name": "Name of software tested",
+    "fuzzer": "afl",
+}
+
+DEFAULT_CONFIG = {
+    "manifest": MANIFEST_CONFIG,
+    "compile": {
+        "compile_test": DEFAULT_HARNESS,
+        "compile_args": [],
+    },
+    "test": {
+        "input_seeds": "in",
+        "output_test_dir": "out",
+    }
+}
+
+
 DOCKERFILE = """
 FROM deepstate:latest
 
@@ -27,17 +45,17 @@ CMD ["/bin/bash"]
 """
 
 
-HEADER = """
-// FOR USER: include other headers
-
+TEST_HARNESS = """
+// {HARNESS_NAME}
+//
 #include <deepstate/DeepState.hpp>
 
 using namespace deepstate;
-"""
 
 
-TEST_FUNC = """
-TEST({UNIT}, {TESTNAME}) {
+TEST(Unit, TestName) {
+    LOG(TRACE) << "Running unit test";
 
+    // .. include test logic here
 }
 """

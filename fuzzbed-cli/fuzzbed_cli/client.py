@@ -2,28 +2,31 @@
 client.py
 
     DESCRIPTION:
-        API interface for interacting with test workspaces and
-        Docker for containerized fuzzing.
+        API interface for interacting with test workspaces and Docker for containerized fuzzing.
+        Our client object interacts with our testbed environment, manages testing workspaces,
+        and spins off container fuzzing workers when necessary.
 
     USAGE:
         client = Client()
         client.functionality()
 
 """
+
 import os
-import random
-import string
+import shutil
 import subprocess
 import requests
 
-from typing import Optional, List, Dict
+import .templates
 
-#from deepstate.core import config
+from deepstate.core import config
+from typing import Optional, List, Dict, Union
+
 
 
 class Client(object):
     """
-    A Client is an object that encapsulates an interface for interacting with
+    A Client is an object that encapsulates an interface for interacting with the testing environment,
     """
 
     def __init__(self, test_env: str = "TESTBED") -> None:
@@ -49,37 +52,37 @@ class Client(object):
         # get all test workspaces from testbed directory
         self.test_paths: List[str] = [testdir[0] for testdir in os.walk(env)]
 
+    @staticmethod
+    def _init_config() -> str:
+        return "ok"
 
-    def _parse_ws(self, ws_name: str) -> Dict[str, str]:
+
+    def init_ws(self, ws_name: str, config_path: Optional[str] = None, harness_paths: List[str] = []) -> None:
         """
-        From an input workspace directory, parse out all of the necessary components of the workspace to pass back to the
-        user for for further manipulation.
-
-        :param ws_name: name of workspace directory to parse.
-        """
-
-        if ws_name not in self.test_paths:
-            raise Exception("workspace directory not find in testbed path.")
-
-        ws_conf: Dict[str, str] = dict()
-        return ws_config
-
-
-    def init_ws(self, ws_name: str, num_tests: int, config_path: str) -> None:
-        """
-        Creates a new workspace in the testbed environment path. Consumes a configuration path in order to
-        generate necessary components, including the templated build scripts.
+        Creates a new workspace in the testbed environment path. If no configuration and harness(es) is provided,
+        the client will initialize default ones for the user.
 
         :param ws_name: name of workspace directory.
-        :param num_tests: num of tests to generate for default harness.
-        :param config_path: path to configuration file to consume be consumed by DeepState executor.
+        :param config_path: optional path to configuration file to consume be consumed by DeepState executor.
+        :param harness_paths: optional paths to existing DeepState test harnesses
         """
 
         if ws_name in self.test_paths:
             raise Exception("workspace directory already exists in testbed path.")
 
-        os.mkdir(os.path.join(self.env + '/' + ws_name))
+        # initialize workspace directory with ws_name
+        ws: str = os.path.join(self.env + '/' + ws_name)
+        os.mkdir(ws)
 
+        # initialize new config or from user-specified input
+        config = Client._init_config() if config_path is None else AnalysisBackend.build_from_config(config_path)
 
-    def list_tests(job: Optional[str]) -> str:
-        return "some"
+        # if no existing harnesses are specified, write a single default one
+        if len(harness_paths) == 0:
+            with open(ws + '/' + templates.DEFAULT_HARNESS_NAME, "w") as f:
+                f.write(templates.TEST_HARNESS)
+
+        # if not, copy harnesses over to workspace
+        else:
+            for path in harness_paths:
+                shutil.copyfile(path, ws)

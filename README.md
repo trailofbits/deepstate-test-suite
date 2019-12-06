@@ -21,6 +21,15 @@ This is ideal for developers who want to:
 | tweetnacl     | 1				  |
 | json          | 1				  |
 
+## Usage
+
+* Initialize either a new testing workspace
+
+```
+
+
+```
+
 ## Architecture Design
 
 ### Setup

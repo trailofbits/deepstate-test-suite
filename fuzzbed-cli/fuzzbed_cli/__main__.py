@@ -21,13 +21,23 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="CLI application for interfacing fuzzbed")
     subparsers = parser.add_subparsers(dest="command")
 
-    # `init` - creates a new testing workspace in `tests/` with a default single template harness.
+    # `init` - creates a new testing workspace in $TESTBED. Initializes a templated configuration plus
+    #          harness none of those arguments are provided.
     init_parser = subparsers.add_parser("init")
-    init_parser.add_argument("-n", "--name", type=str, default="workspace", help="Name of testing workspace (default is `workspace`)")
-    init_parser.add_argument("-t", "--num_tests", type=int, default=1, help="Number of tests to initialize in default harness (default is 1).")
-    init_parser.add_argument("-c", "--config", type=str, required=True, help="Defines the configuration file to be consumed for analysis.")
+    init_parser.add_argument(
+        "-n", "--name", type=str, default="workspace",
+        help="Name of testing workspace (default is `workspace`).")
 
-    # `list` - outputs available testing workspaces and their contents.
+    init_parser.add_argument(
+        "--config", type=str, required = "--tests" in sys.argv,
+        help="Defines the configuration file to be consumed for analysis. Will be created if not specified.")
+
+    init_parser.add_argument(
+        "--tests", default=[], nargs=argparse.REMAINDER, required = "--config" in sys.argv,
+        help="Define harness or harnesses to reside in testbed workspace. Will create a single templated harness if not specified.")
+
+
+    # `list` - provides different output facilities for reporting various
     list_parser = subparsers.add_parser("list")
     list_parser.add_argument("--out_tests", action="store_true", help="List out tests for harness(es) if flag is set.")
 
@@ -37,15 +47,21 @@ def main() -> int:
 
     # `start` - provisions a container for analysis.
     start_parser = subparsers.add_parser("start")
-    start_parser.add_argument("--target", type=str, required=True, help="Name of workspace to parse configuration and spin up container.")
-    start_parser.add_argument("--job_name", type=str, default="", help="Name of worker job that deploys container for testing.")
+
+    start_parser.add_argument("--target",
+        type=str, required=True,
+        help="Name of workspace to parse configuration and spin up container.")
+
+    start_parser.add_argument("--job_name",
+        type=str, default="worker_" + "".join([random.choice(string.ascii_letters + string.digits) for n in range(5)]),
+        help="Name of worker job that deploys container for testing.")
 
     args = parser.parse_args()
 
     client = Client()
 
     if args.command == "init":
-        client.init_ws(args.name, args.num_tests)
+        client.init_ws(args.name, args.config, args.harnesses)
 
     elif args.command == "list":
         print(client.list_tests(args.job))
