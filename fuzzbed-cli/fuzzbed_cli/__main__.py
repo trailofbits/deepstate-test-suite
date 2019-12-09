@@ -11,10 +11,19 @@ fuzzbed-cli.py
         fuzzbed-cli [COMMAND] <flags> ...
 """
 
+import logging
+logging.basicConfig()
+
+import os
 import sys
+import string
+import random
 import argparse
 
 from fuzzbed_cli.client import Client
+
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(os.environ.get("FUZZBED_LOG", "INFO").upper())
 
 
 def main() -> int:
@@ -61,10 +70,13 @@ def main() -> int:
     client = Client()
 
     if args.command == "init":
-        client.init_ws(args.name, args.config, args.harnesses)
+        LOGGER.info("Initializing workspace in testbed environment")
+        ws_path = client.init_ws(args.name, args.config, args.tests)
+
+        print("\n[*] Initialized new workspace at `{}`".format(ws_path))
 
     elif args.command == "list":
-        print(client.list_tests(args.job))
+        print(client.workspaces)
 
     elif args.command == "ps":
         client.processes()

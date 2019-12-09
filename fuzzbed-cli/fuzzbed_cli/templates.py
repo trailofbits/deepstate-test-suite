@@ -8,7 +8,8 @@ templates.py
 """
 
 
-DEFAULT_HARNESS = "test_default.cpp"
+DEFAULT_HARNESS_NAME = "test_default.cpp"
+DEFAULT_CONFIG_NAME = "config.ini"
 
 
 MANIFEST_CONFIG = {
@@ -19,7 +20,7 @@ MANIFEST_CONFIG = {
 DEFAULT_CONFIG = {
     "manifest": MANIFEST_CONFIG,
     "compile": {
-        "compile_test": DEFAULT_HARNESS,
+        "compile_test": DEFAULT_HARNESS_NAME,
         "compile_args": [],
     },
     "test": {
@@ -29,8 +30,7 @@ DEFAULT_CONFIG = {
 }
 
 
-DOCKERFILE = """
-FROM deepstate:latest
+DOCKERFILE = """FROM deepstate:latest
 
 # FOR USER: specify additional dependencies to install and/or build
 
@@ -45,9 +45,9 @@ CMD ["/bin/bash"]
 """
 
 
-TEST_HARNESS = """
-// {HARNESS_NAME}
+DEFAULT_TEST_HARNESS = """// {HARNESS_NAME}
 //
+
 #include <deepstate/DeepState.hpp>
 
 using namespace deepstate;
