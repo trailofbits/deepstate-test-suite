@@ -21,12 +21,15 @@ import requests
 import configparser
 
 from fuzzbed_cli import templates
-from deepstate.core.base import AnalysisBackend, ConfigType
+from deepstate.core.base import AnalysisBackend
 
 from typing import Optional, List, Dict, Union
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(os.environ.get("FUZZBED_LOG", "INFO").upper())
+
+# import from core api
+ConfigType = Dict[str, Dict[str, Union[str, List[str]]]]
 
 
 class ClientError(Exception):
@@ -61,21 +64,25 @@ class Client(object):
 
 
     @staticmethod
-    def _init_config(conf_path: str) -> Optional[Dict[str, str]]:
+    def _init_config(ws_path: str) -> Optional[Dict[str, str]]:
         """
         Helper method that takes an input path and generates a serializable configuration from a default dict.
 
-        :param conf_path: absolute path to directory to initialize with default config name
+        :param ws_path: absolute path to directory to initialize with default config name
         """
 
+        # define abspath to config file
+        conf_path: str = os.path.join(ws_path, templates.DEFAULT_CONFIG_NAME)
+        LOGGER.debug("Path to configuration to write: {}".format(conf_path))
+
+        # initialize a parser to write
         parser = configparser.ConfigParser()
         parser.update(templates.DEFAULT_CONFIG)
-
-        with open(os.path.join(conf_path, templates.DEFAULT_CONFIG_NAME), "w") as conf_file:
+        with open(conf_path, "w") as conf_file:
             parser.write(conf_file)
 
-        return vars(parser)
-
+        # with file on disk, re-initialize with AnalysisBackend helper
+        return AnalysisBackend.build_from_config(conf_path, include_sections=True)
 
 
     def init_ws(self, _ws_name: str, config_path: Optional[str] = None, harness_paths: List[str] = []) -> str:
@@ -106,10 +113,42 @@ class Client(object):
         else:
             LOGGER.info("Copying configuration `{}` to `{}`.".format(config_path, ws_name))
             shutil.copy(config_path, ws_name)
+            config = AnalysisBackend.build_from_config(config_path, include_sections=True)
+
+        # parse out configuration manifest for information for Dockerfile
+        LOGGER.debug(config)
+
+        manifest = config["manifest"]
+
+        # sanity-check configuration
+        executor = manifest["executor"]
+        if executor in templates.NOT_SUPPORTED:
+            raise ClientError("{} executor not yet supported by fuzzbed".format(executor))
+        elif executor not in templates.ALLOWED:
+            raise ClientError("{} executor not found".format(executor))
+
+        LOGGER.info("Initializing with `{}` executor".format(executor))
 
         # initialize Dockerfile
+        dockerfile = templates.DOCKERFILE \
+            .replace("{TOOL}", executor) \
+            .replace("{USER}", manifest["hostname"]) \
+            .replace("{WS_NAME}", _ws_name) \
+            .replace("{CONF_FILE}", "config.ini")
+
+        # TODO: provision_steps should be a list
+        # if provisioning steps were specified, apply to Dockerfile
+        if len(manifest["provision_steps"]) > 0:
+            dockerfile = dockerfile.replace("{PROVISION_STEPS}", "\n".join(manifest["provision_steps"]))
+        else:
+            dockerfile = dockerfile.replace("{PROVISION_STEPS}", " ")
+
+        # write finalized Dockerfile to workspace for cluster deployment
         with open(os.path.join(ws_name, "Dockerfile"), "w") as f:
-            f.write(templates.DOCKERFILE)
+            f.write(dockerfile)
+
+        # initialize initial corpus directory
+        os.mkdir(os.path.join(ws_name, config["test"]["input_seeds"])
 
         # if no existing harnesses are specified, write a single default one
         if len(harness_paths) == 0:
@@ -131,4 +170,4 @@ class Client(object):
 
     @property
     def workspaces(self):
-        print(self.test_paths)
+        return self.test_paths

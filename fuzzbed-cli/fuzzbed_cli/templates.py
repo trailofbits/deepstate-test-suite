@@ -8,15 +8,42 @@ templates.py
 """
 
 
+
+# default filenames for testbed workspace components
 DEFAULT_HARNESS_NAME = "test_default.cpp"
 DEFAULT_CONFIG_NAME = "config.ini"
 
 
+# allowed tools for analysis in manifest
+ALLOWED = [
+    "afl", "eclipser", "honggfuzz", "angora",
+    "ensemble"
+]
+
+
+# not yet supported tools for analysis
+NOT_SUPPORTED = ["manticore", "angr"]
+
+
+# defines the default manifest section to write to harness
+# TODO: define as custom AttrDict type
 MANIFEST_CONFIG = {
-    "name": "Name of software tested",
-    "fuzzer": "afl",
+
+    # identifying software being tested for worker
+    "name": "{TEST}",
+
+    # name of docker host
+    "hostname": "fuzzer",
+
+    # used to build up proper Dockerfile with executor to use
+    "executor": "afl",
+
+    # defines steps for provisioning the workspace
+    "provision_steps": []
 }
 
+
+# default configuration file to be generated for a fresh workspace
 DEFAULT_CONFIG = {
     "manifest": MANIFEST_CONFIG,
     "compile": {
@@ -30,16 +57,18 @@ DEFAULT_CONFIG = {
 }
 
 
+# templated Dockerfile
 DOCKERFILE = """FROM deepstate:latest
 
-# FOR USER: specify additional dependencies to install and/or build
+# Pre-execution provisioning
+{PROVISION_STEPS}
 
+# Initialize container host with workspace
 RUN chown -R {USER}:{USER} /home/{USER}
 USER {USER}
-COPY tests/{TEST} .
+COPY . /home/{USER}/{WS_NAME}
 
-RUN deepstate-{TOOL} {OPTIONS}
-RUN deepstate-{TOOL} {OPTIONS}
+RUN deepstate-{TOOL} --config {CONF_FILE}
 
 CMD ["/bin/bash"]
 """

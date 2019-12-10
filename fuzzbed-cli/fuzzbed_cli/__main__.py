@@ -79,7 +79,7 @@ def main() -> int:
         print(client.workspaces)
 
     elif args.command == "ps":
-        client.processes()
+        client.processes(args.job)
 
     elif args.command == "start":
         client.execute()
