@@ -1,8 +1,12 @@
-FROM ubuntu:18.04
+FROM deepstate:latest
+
 MAINTAINER Alan Cao
 
-WORKDIR /root
+RUN userdd -ms /bin/bash orchestrator && echo "orchestrator:orchestrator" \
+	| chpasswd && adduser orchestrator sudo
 
-# Install dependencies
-RUN apt-get update
-RUN apt-get install -y software-properties-common
+USER orchestrator
+WORKDIR /home/orchestrator
+COPY . /home/orchestrator/server
+
+RUN "python3 setup.py install"

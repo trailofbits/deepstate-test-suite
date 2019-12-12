@@ -42,10 +42,10 @@ MANIFEST_CONFIG = {
     "provision_steps": []
 }
 
-
 # default configuration file to be generated for a fresh workspace
 DEFAULT_CONFIG = {
     "manifest": MANIFEST_CONFIG,
+    "internal": None,
     "compile": {
         "compile_test": DEFAULT_HARNESS_NAME,
         "compile_args": [],
@@ -61,8 +61,12 @@ DEFAULT_CONFIG = {
 DOCKERFILE = """FROM deepstate:latest
 
 # Initialize container host with workspace configurations
+RUN useradd -ms /bin/bash {USER} && echo "{USER}:{USER}" | chpasswd && adduser {USER} sudo
 RUN chown -R {USER}:{USER} /home/{USER}
+
+# Switch to user work directory, and copy over workspace
 USER {USER}
+WOKRDIR /home/{USER}
 COPY . /home/{USER}/{WS_NAME}
 
 

@@ -65,7 +65,7 @@ class Client(object):
 
 
     @staticmethod
-    def _init_config(ws_path: str) -> Optional[Dict[str, str]]:
+    def _init_config(ws_path: str) -> Optional[ConfigType]:
         """
         Helper method that takes an input path and generates a serializable configuration from a default dict.
 
@@ -179,7 +179,19 @@ class Client(object):
         return self.test_paths
 
 
-    def get_process(self) -> Optional[str]:
+    def execute(self, workspace: str, job_name: str) -> None:
+        pass
+
+
+    def get_process(self, job_name: Optional[str]) -> None:
+        """
+        Sends a GET request to /api/process/<job_name> in order to retrieve specific information about a process.
+        If job_name is not specified, general information will be outputted regarding every single active worker.
+
+        :param job_name: name of worker job that is active to introspect
         """
 
-        """
+        if job_name is None:
+            LOGGER.info("No specific job name specified. Outputting information for all.")
+
+        pass

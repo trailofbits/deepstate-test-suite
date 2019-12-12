@@ -85,9 +85,19 @@ def main() -> int:
             print("\n[!] No workspaces available, or testbed environment is littered [!]\n")
             sys.exit(1)
 
-        print("Workspace Name\tWorkspace Path")
-        print("".join(["{}\t{}\n".format(name, path) for (name, path) in client.workspaces]))
+        print("Workspace Name\t|\tWorkspace Path")
+        print("".join(["{}\t|\t{}\n".format(name, path) for (name, path) in client.workspaces]))
         print("\n")
+        sys.exit(0)
+
+
+    elif args.command == "start":
+        if client.execute(args.target, args.job_name) is None:
+            print("\n[!] Unable to start worker job for `{}` target [!]\n".format(args.target))
+            sys.exit(1)
+
+        print("[*] Worker job for `{}` successfully started. Call `fuzzbed-cli ps --job_name {}` to view status [*]"
+            .format(args.target, args.job_name))
         sys.exit(0)
 
 
@@ -98,10 +108,6 @@ def main() -> int:
             print("\n[!] No worker job with name `{}` available [!]\n".format(job_ps))
 
         sys.exit(0)
-
-
-    elif args.command == "start":
-        client.execute()
 
 
     else:
