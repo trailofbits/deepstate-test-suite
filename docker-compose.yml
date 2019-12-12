@@ -1,38 +1,27 @@
 version: "3"
 services:
 
-  # synchronize output reports with redis
+  # shared redis container is deployed in order to sync crashes and store statistics
+  # per fuzzing container run
   redis:
     image: redis:alpine
     ports:
       - "6543:6543"
 
-  # master server engine that spins up additional containers
+  # orhcestration server engine that spins up additional containers
   # to isolate parallelized fuzzing processes
   orchestrator:
     build: ./orchestrator
-    command: something build
+    priviledged: true
+    ports:
+      - "1234:1234"
     links:
       - redis
+    volumes:
+      - tests:/tests
     environment:
-      - TESTBED: /tests
-    volumes:
-      - tests:/tests
-      - fuzz_results:/results
-
-
-  # containerized client application that interacts with testbed environment
-  # and instantiate worker jobs
-  client:
-    build: ./fuzzbed-cli
-    command: python3.6 setup.py install
-    links:
-      - orchestrator
-    volumes:
-      - tests:/tests
-      - fuzz_results:/results
+      - TESTBED:/tests
 
 
 volumes:
   tests:
-  fuzz_results:
