@@ -38,7 +38,7 @@ def main() -> int:
         help="Name of testing workspace (default is `workspace`).")
 
     init_parser.add_argument(
-        "--config", type=str, required = "--tests" in sys.argv,
+        "-c", "--config", type=str, required = "--tests" in sys.argv,
         help="Defines the configuration file to be consumed for analysis. Will be created if not specified.")
 
     init_parser.add_argument(
@@ -46,47 +46,67 @@ def main() -> int:
         help="Define harness or harnesses to reside in testbed workspace. Will create a single templated harness if not specified.")
 
 
-    # `list` - provides different output facilities for reporting various
+    # `list` - provides different output facilities for reporting various components of
     list_parser = subparsers.add_parser("list")
-    list_parser.add_argument("--out_tests", action="store_true", help="List out tests for harness(es) if flag is set.")
+    list_parser.add_argument(
+        "--out_tests", action="store_true", help="List out tests for harness(es) if flag is set.")
 
-    # `ps` - lists out worker jobs and their statuses that are deployed and actively fuzzing.
-    ps_parser = subparsers.add_parser("ps")
-    ps_parser.add_argument("-j", "--job", type=str, help="Check status of an individual worker job.")
 
     # `start` - provisions a container for analysis.
     start_parser = subparsers.add_parser("start")
-
-    start_parser.add_argument("--target",
-        type=str, required=True,
+    start_parser.add_argument(
+        "--target", type=str, required=True,
         help="Name of workspace to parse configuration and spin up container.")
 
-    start_parser.add_argument("--job_name",
-        type=str, default="worker_" + "".join([random.choice(string.ascii_letters + string.digits) for n in range(5)]),
-        help="Name of worker job that deploys container for testing.")
+    start_parser.add_argument(
+        "--job_name", type=str, default="worker_" + "".join([random.choice(string.ascii_letters + string.digits) for n in range(5)]),
+        help="Name of worker job for target workspace that identifies deployed container for testing.")
+
+
+    # `ps` - lists out worker jobs and their statuses that are deployed and actively fuzzing.
+    ps_parser = subparsers.add_parser("ps")
+    ps_parser.add_argument(
+        "--job_name", type=str,
+        help="Name of active worker job to introspect.")
 
     args = parser.parse_args()
 
     client = Client()
 
-    if args.command == "init":
-        LOGGER.info("Initializing workspace in testbed environment")
-        ws_path = client.init_ws(args.name, args.config, args.tests)
 
-        print("\n[*] Initialized new workspace at `{}`".format(ws_path))
+    if args.command == "init":
+        ws_path = client.init_ws(args.name, args.config, args.tests)
+        print("\n[*] Initialized new workspace at `{}` [*]\n".format(ws_path))
+        sys.exit(0)
+
 
     elif args.command == "list":
-        print(client.workspaces)
+        if client.workspaces is None:
+            print("\n[!] No workspaces available, or testbed environment is littered [!]\n")
+            sys.exit(1)
+
+        print("Workspace Name\tWorkspace Path")
+        print("".join(["{}\t{}\n".format(name, path) for (name, path) in client.workspaces]))
+        print("\n")
+        sys.exit(0)
+
 
     elif args.command == "ps":
-        client.processes(args.job)
+
+        job_ps = client.get_process(args.job)
+        if job_ps is None:
+            print("\n[!] No worker job with name `{}` available [!]\n".format(job_ps))
+
+        sys.exit(0)
+
 
     elif args.command == "start":
         client.execute()
 
+
     else:
         parser.print_help(sys.stderr)
-        return 1
+        sys.exit(1)
 
     return 0
 

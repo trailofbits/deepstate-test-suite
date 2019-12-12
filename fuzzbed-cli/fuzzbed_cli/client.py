@@ -15,6 +15,7 @@ import logging
 logging.basicConfig()
 
 import os
+import json
 import shutil
 import subprocess
 import requests
@@ -136,19 +137,19 @@ class Client(object):
             .replace("{WS_NAME}", _ws_name) \
             .replace("{CONF_FILE}", "config.ini")
 
-        # TODO: provision_steps should be a list
         # if provisioning steps were specified, apply to Dockerfile
-        if len(manifest["provision_steps"]) > 0:
-            dockerfile = dockerfile.replace("{PROVISION_STEPS}", "\n".join(manifest["provision_steps"]))
+        if len(json.loads(manifest["provision_steps"])) > 0:
+            steps = "".join(["RUN {}\n".format(cmd) for cmd in manifest["provision_steps"]])
+            dockerfile = dockerfile.replace("{PROVISION_STEPS}", steps)
         else:
             dockerfile = dockerfile.replace("{PROVISION_STEPS}", " ")
 
-        # write finalized Dockerfile to workspace for cluster deployment
+        # write finalized Dockerfile to workspace for container deployment
         with open(os.path.join(ws_name, "Dockerfile"), "w") as f:
             f.write(dockerfile)
 
         # initialize initial corpus directory
-        os.mkdir(os.path.join(ws_name, config["test"]["input_seeds"])
+        os.mkdir(os.path.join(ws_name, config["test"]["input_seeds"]))
 
         # if no existing harnesses are specified, write a single default one
         if len(harness_paths) == 0:
@@ -169,5 +170,16 @@ class Client(object):
 
 
     @property
-    def workspaces(self):
+    def workspaces(self) -> Optional[List[str]]:
+        """
+        Sends a GET request to /api/workspaces in order to retrieve workspace information. Assert if
+        tests on container-accessed volume is same on self.test_paths, in case there are "orphaned"
+        workspaces.
+        """
         return self.test_paths
+
+
+    def get_process(self) -> Optional[str]:
+        """
+
+        """

@@ -60,17 +60,20 @@ DEFAULT_CONFIG = {
 # templated Dockerfile
 DOCKERFILE = """FROM deepstate:latest
 
-# Pre-execution provisioning
-{PROVISION_STEPS}
-
-# Initialize container host with workspace
+# Initialize container host with workspace configurations
 RUN chown -R {USER}:{USER} /home/{USER}
 USER {USER}
 COPY . /home/{USER}/{WS_NAME}
 
-RUN deepstate-{TOOL} --config {CONF_FILE}
 
-CMD ["/bin/bash"]
+# Pre-execution provisioning steps. These are formatted over
+# either from the manifest's provisioning
+{PROVISION_STEPS}
+
+
+# Run the fuzzer executor with the target's corresponding
+# configuration path
+CMD ["deepstate-{TOOL}", "--config", "{CONF_FILE}"]
 """
 
 

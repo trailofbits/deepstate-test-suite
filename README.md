@@ -1,4 +1,4 @@
-# fuzzbed
+# deepstate-test-suite
 
 Automated continuous testing integration using DeepState
 
@@ -21,24 +21,24 @@ This is ideal for developers who want to:
 | tweetnacl     | 1				  |
 | json          | 1				  |
 
-## Usage
-
-* Initialize either a new testing workspace
-
-```
-
-
-```
 
 ## Architecture Design
 
-### Setup
+- `/fuzzbed-cli`
 
-- `/cli`
+Client command-line application for interfacing with the orchestration service to create workspaces and container jobs.
 
 - `/orchestrator`
 
+Orchestration service engine that responds to requests from the CLI in order to create containerized fuzzing jobs.
+
 - `/tests`
+
+Default testbed of pre-existing fuzzing targets and artifacts.
+
+### Usage
+
+TODO
 
 ## Contributions
 

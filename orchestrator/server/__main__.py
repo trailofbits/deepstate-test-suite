@@ -13,9 +13,12 @@ fuzzbed-server
 
 """
 
+import flask
+
 
 def main():
-    pass
+    server = flask.Flask()
+    server.run()
 
 
 if __name__ == "__main__":

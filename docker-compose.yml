@@ -14,8 +14,12 @@ services:
     command: something build
     links:
       - redis
+    environment:
+      - TESTBED: /tests
     volumes:
-      - tests
+      - tests:/tests
+      - fuzz_results:/results
+
 
   # containerized client application that interacts with testbed environment
   # and instantiate worker jobs
@@ -25,4 +29,10 @@ services:
     links:
       - orchestrator
     volumes:
-      - tests
+      - tests:/tests
+      - fuzz_results:/results
+
+
+volumes:
+  tests:
+  fuzz_results:
