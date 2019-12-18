@@ -112,9 +112,22 @@ class Client(object):
             LOGGER.info("Initializing a new default configuration.")
             config = Client._init_config(ws_name)
         else:
+
+            # copy configuration file to testbed path
             LOGGER.info("Copying configuration `{}` to `{}`.".format(config_path, ws_name))
             shutil.copy(config_path, ws_name)
+
+            # initialize user-specified path as configuration, and sanity-check
             config = AnalysisBackend.build_from_config(config_path, include_sections=True)
+
+            # ensure manifest section exists
+            if "manifest" not in config.keys():
+                raise ClientError("No manifest section defined. Cannot instantiation request without one in config.")
+
+            # compare keys against default template. Check if minimum number of required ones exist
+            missing = [key for key in templates.MANIFEST_CONFIG.keys() if key not in config["manifest"].keys()]
+            if len(missing) > 0:
+                raise ClientError("Missing entries in manifest: {}".format(missing))
 
         # parse out configuration manifest for information for Dockerfile
         LOGGER.debug(config)
@@ -133,13 +146,23 @@ class Client(object):
         # initialize Dockerfile
         dockerfile = templates.DOCKERFILE \
             .replace("{TOOL}", executor) \
-            .replace("{USER}", manifest["hostname"]) \
             .replace("{WS_NAME}", _ws_name) \
             .replace("{CONF_FILE}", "config.ini")
 
+        # initialize optional arguments or use default
+        if "hostname" in manifest.keys():
+            dockerfile = dockerfile.replace("{USER}", manifest["hostname"])
+        else:
+            dockerfile = dockerfile.replace("{USER}", "fuzzer")
+
         # if provisioning steps were specified, apply to Dockerfile
-        if len(json.loads(manifest["provision_steps"])) > 0:
-            steps = "".join(["RUN {}\n".format(cmd) for cmd in manifest["provision_steps"]])
+        LOGGER.info("Checking for provisioning steps to write to Dockerfile")
+
+        provision_list = json.loads(manifest["provision_steps"])
+        LOGGER.debug(provision_list)
+
+        if len(provision_list) > 0:
+            steps = "".join(["RUN {}\n".format(cmd) for cmd in provision_list])
             dockerfile = dockerfile.replace("{PROVISION_STEPS}", steps)
         else:
             dockerfile = dockerfile.replace("{PROVISION_STEPS}", " ")

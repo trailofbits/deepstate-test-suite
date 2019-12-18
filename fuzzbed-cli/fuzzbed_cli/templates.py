@@ -7,8 +7,6 @@ templates.py
         a harness and configuration.
 """
 
-
-
 # default filenames for testbed workspace components
 DEFAULT_HARNESS_NAME = "test_default.cpp"
 DEFAULT_CONFIG_NAME = "config.ini"
@@ -22,7 +20,7 @@ ALLOWED = [
 
 
 # not yet supported tools for analysis
-NOT_SUPPORTED = ["manticore", "angr"]
+NOT_SUPPORTED = ["manticore", "angr", "libfuzzer"]
 
 
 # defines the default manifest section to write to harness
@@ -31,9 +29,6 @@ MANIFEST_CONFIG = {
 
     # identifying software being tested for worker
     "name": "{TEST}",
-
-    # name of docker host
-    "hostname": "fuzzer",
 
     # used to build up proper Dockerfile with executor to use
     "executor": "afl",
@@ -45,14 +40,19 @@ MANIFEST_CONFIG = {
 # default configuration file to be generated for a fresh workspace
 DEFAULT_CONFIG = {
     "manifest": MANIFEST_CONFIG,
-    "internal": None,
+    "internal": {
+        "server_addr": "0.0.0.0",
+        "server_port": 123
+    },
     "compile": {
         "compile_test": DEFAULT_HARNESS_NAME,
-        "compile_args": [],
+        "compile_args": "",
     },
     "test": {
         "input_seeds": "in",
         "output_test_dir": "out",
+        "timeout": "3600",
+        "no_fork": True
     }
 }
 
