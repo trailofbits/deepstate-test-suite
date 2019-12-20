@@ -132,10 +132,10 @@ class Client(object):
         # parse out configuration manifest for information for Dockerfile
         LOGGER.debug(config)
 
-        manifest = config["manifest"]
+        manifest: str = config["manifest"]
 
         # sanity-check configuration
-        executor = manifest["executor"]
+        executor: str = manifest["executor"]
         if executor in templates.NOT_SUPPORTED:
             raise ClientError("{} executor not yet supported by fuzzbed".format(executor))
         elif executor not in templates.ALLOWED:
@@ -144,7 +144,7 @@ class Client(object):
         LOGGER.info("Initializing with `{}` executor".format(executor))
 
         # initialize Dockerfile
-        dockerfile = templates.DOCKERFILE \
+        dockerfile: str = templates.DOCKERFILE \
             .replace("{TOOL}", executor) \
             .replace("{WS_NAME}", _ws_name) \
             .replace("{CONF_FILE}", "config.ini")
@@ -162,7 +162,7 @@ class Client(object):
         LOGGER.debug(provision_list)
 
         if len(provision_list) > 0:
-            steps = "".join(["RUN {}\n".format(cmd) for cmd in provision_list])
+            steps: List[str] = "".join(["RUN {}\n".format(cmd) for cmd in provision_list])
             dockerfile = dockerfile.replace("{PROVISION_STEPS}", steps)
         else:
             dockerfile = dockerfile.replace("{PROVISION_STEPS}", " ")

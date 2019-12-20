@@ -15,6 +15,6 @@ out/
 *_out/
 venv/
 
-fuzzbed-cli/build/
-fuzzbed-cli/dist/
-fuzzbed-cli/*.egg-info/
+*/build/
+*/dist/
+*/*.egg-info/

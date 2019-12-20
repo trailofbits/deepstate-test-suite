@@ -18,9 +18,9 @@ setuptools.setup(
     author = "Alan Cao",
     author_email = "alan.cao@trailofbits.com",
     license = "Apache-2.0",
-    packages = ['fuzzbed_orchestrator'],
-    install_requires = ['flask', 'mypy'],
+    packages = ['server'],
+    install_requires = ['flask', 'mypy', 'kubernetes', 'gunicorn'],
     entry_points = {
-        "console_scripts" : ["fuzzbed-orchestrator = fuzzbed_orchestrator.__main__:main"]
+        "console_scripts" : ["fuzzbed-orchestrator = server.__main__:main"]
     }
 )
