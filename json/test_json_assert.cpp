@@ -21,8 +21,8 @@ using namespace deepstate;
 
 TEST(JSON, AssertFail) {
 
-	unsigned char * data = (unsigned char *) DeepState_CStrUpToLen(MAXLEN);
-	size_t size = strlen((char *) data);
+    unsigned char * data = (unsigned char *) DeepState_CStrUpToLen(MAXLEN);
+    size_t size = strlen((char *) data);
 
     try {
         // step 1: parse input
@@ -44,8 +44,8 @@ TEST(JSON, AssertFail) {
             ASSERT_EQ(s1, s2);
         }
         catch (const std::invalid_argument&) {
-            // parsing a JSON serialization must not fail
-            assert(false);
+            LOG(ERROR) << "Parsing returned std::invalid_argument exception";
+            ASSERT(false);
         }
     }
     catch (const std::invalid_argument&) {
