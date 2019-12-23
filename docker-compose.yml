@@ -8,7 +8,18 @@ services:
     ports:
       - "6543:6543"
 
-  # orhcestration server engine that spins up additional containers
+  # spins up a container to automatically built CLI application for interacting with orchestrator
+  cli:
+    build: ./fuzzbed-cli
+    priviledged: false
+    ports:
+      - "8000:8000"
+    volumes:
+      - tests:/tests
+    enviroment:
+      - FUZZBED_SERVER=0.0.0.0:1234
+
+  # orchestration server engine that spins up additional containers
   # to isolate parallelized fuzzing processes
   orchestrator:
     build: ./orchestrator
@@ -20,8 +31,14 @@ services:
     volumes:
       - tests:/tests
     environment:
-      - TESTBED:/tests
+      - TESTBED=/tests
+      - REDIS_QUEUE_URL=redis:6543
 
 
+# describes the shared volumes that exist between containers
+#   - tests: points to our locally defined $TESTBED environment, and will be shared across
+#            all fuzzer container jobs
+#   - logs:  points to a shared volume that stores and aggregates fuzzer outputs
 volumes:
   tests:
+  logs:

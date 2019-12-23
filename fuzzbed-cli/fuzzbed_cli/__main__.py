@@ -102,7 +102,6 @@ def main() -> int:
 
 
     elif args.command == "ps":
-
         job_ps = client.get_process(args.job)
         if job_ps is None:
             print("\n[!] No worker job with name `{}` available [!]\n".format(job_ps))

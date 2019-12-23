@@ -3,3 +3,15 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: {NAME}
+spec:
+  template:
+    metadata:
+      name: {NAME}
+    spec:
+      containers:
+        - name: orchestrator
+          image: {IMAGE}
+          resources:
+            limits:
+              memory: {MEMORY}
+              cpu: {CPU}
