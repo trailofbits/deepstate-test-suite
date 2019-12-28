@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 fuzzbed-server
 
@@ -13,13 +14,37 @@ fuzzbed-server
 
 """
 
+import os
 import flask
 
 
-def main():
-    server = flask.Flask()
-    server.run()
+app = flask.Flask(__name__)
+
+
+@app.route("/api/start")
+def start():
+    return "New job"
+
+
+@app.route("/api/stop")
+def stop():
+    return "Stopping"
+
+
+@app.route("/api/list")
+def list():
+    return "None"
+
+
+@app.route("/")
+def index():
+    """
+    Throw to a TODO homepage
+    """
+    return "fuzzbed instance"
+
 
 
 if __name__ == "__main__":
-    exit(main())
+    debug_env = os.environ.get("SERVER_DEBUG")
+    app.run(debug=debug_env != None)
