@@ -1,0 +1,1 @@
+fuzzbed_cli

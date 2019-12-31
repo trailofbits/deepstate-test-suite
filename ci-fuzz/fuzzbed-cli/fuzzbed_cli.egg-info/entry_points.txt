@@ -1,0 +1,3 @@
+[console_scripts]
+fuzzbed-cli = fuzzbed_cli.__main__:main
+

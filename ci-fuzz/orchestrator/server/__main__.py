@@ -17,6 +17,8 @@ fuzzbed-server
 import os
 import flask
 
+import .config
+
 
 app = flask.Flask(__name__)
 

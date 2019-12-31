@@ -1,0 +1,4 @@
+flask
+mypy
+gunicorn
+docker

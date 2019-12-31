@@ -1,0 +1,3 @@
+[console_scripts]
+fuzzbed-orchestrator = server.__main__:main
+

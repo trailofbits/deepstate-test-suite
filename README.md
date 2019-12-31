@@ -1,6 +1,6 @@
 # deepstate-test-suite
 
-Automated continuous testing integration using DeepState
+Testbed for DeepState target libraries - contains open-sourced examples and continuous integration build
 
 ## Introduction
 
@@ -22,23 +22,11 @@ This is ideal for developers who want to:
 | json          | 1				  |
 
 
-## Architecture Design
-
-- `/fuzzbed-cli`
-
-Client command-line application for interfacing with the orchestration service to create workspaces and container jobs.
-
-- `/orchestrator`
-
-Orchestration service engine that responds to requests from the CLI in order to create containerized fuzzing jobs.
+## Usage
 
 - `/tests`
 
 Default testbed of pre-existing fuzzing targets and artifacts.
-
-### Usage
-
-TODO
 
 ## Contributions
 

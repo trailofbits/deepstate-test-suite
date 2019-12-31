@@ -1,0 +1,10 @@
+Metadata-Version: 1.0
+Name: fuzzbed-cli
+Version: 0.1
+Summary: Command-line application for interfacing fuzzbed infrastructure for containerized testing.
+Home-page: https://github.com/trailofbits/fuzzbed
+Author: Alan Cao
+Author-email: alan.cao@trailofbits.com
+License: Apache-2.0
+Description: UNKNOWN
+Platform: UNKNOWN
