@@ -49,7 +49,12 @@ def main() -> int:
     # `list` - provides different output facilities for reporting various components of
     list_parser = subparsers.add_parser("list")
     list_parser.add_argument(
-        "--out_tests", action="store_true", help="List out tests for harness(es) if flag is set.")
+        "--out_tests", action="store_true",
+        help="List out tests for harness(es) from the testbed environment if flag is set.")
+
+    list_parser.add_argument(
+        "--out_jobs", action="store_true",
+        help="List out all actively running fuzzing processes.")
 
 
     # `start` - provisions a container for analysis.
@@ -81,13 +86,21 @@ def main() -> int:
 
 
     elif args.command == "list":
-        if client.workspaces is None:
-            print("\n[!] No workspaces available, or testbed environment is littered [!]\n")
-            sys.exit(1)
 
-        print("Workspace Name\t|\tWorkspace Path")
-        print("".join(["{}\t|\t{}\n".format(name, path) for (name, path) in client.workspaces]))
-        print("\n")
+        # retrieve test cases from shared volume without communicating with service
+        if args.out_tests:
+            if len(client.workspaces) == 0:
+                print("\n[!] No workspaces available, or testbed environment is littered [!]\n")
+                sys.exit(1)
+
+            print("Workspace Name\t|\tWorkspace Path")
+            print("".join(["{}\t|\t{}\n".format(name, path) for (name, path) in client.workspaces]))
+            print("\n")
+
+        # otherwise request against orchestrator to retrieve information about jobs
+        elif args.out_jobs:
+            cient.list_jobs()
+
         sys.exit(0)
 
 

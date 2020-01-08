@@ -19,7 +19,7 @@ setuptools.setup(
     author_email = "alan.cao@trailofbits.com",
     license = "Apache-2.0",
     packages = ['server'],
-    install_requires = ['flask', 'mypy', 'gunicorn', 'docker'],
+    install_requires = ['flask', 'mypy', 'gunicorn', 'docker', 'redis'],
     entry_points = {
         "console_scripts" : ["fuzzbed-orchestrator = server.__main__:main"]
     }

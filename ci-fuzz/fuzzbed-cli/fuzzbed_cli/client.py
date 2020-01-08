@@ -16,6 +16,8 @@ logging.basicConfig()
 
 import os
 import json
+import string
+import random
 import shutil
 import subprocess
 import requests
@@ -24,13 +26,13 @@ import configparser
 from fuzzbed_cli import templates
 from deepstate.core.base import AnalysisBackend
 
-from typing import Optional, List, Dict, Union
+from typing import Optional, List, Dict, Any, Union, Tuple
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(os.environ.get("FUZZBED_LOG", "INFO").upper())
 
-# import from core api
-ConfigType = Dict[str, Dict[str, Union[str, List[str]]]]
+# TODO: somehow import from core api
+ConfigType = Dict[str, Dict[str, Any]]
 
 
 class ClientError(Exception):
@@ -42,12 +44,12 @@ class Client(object):
     A Client is an object that encapsulates an interface for interacting with the testing environment,
     """
 
-    def __init__(self, test_env: str = "TESTBED") -> None:
+    def __init__(self, test_env: str = "TESTBED", server_env) -> None:
         """
         Initializes a client to interface testing. Uses a default envvar to specify
         the path to the "testbed" of testing harnesses and artifacts.
 
-        :param test_env: envvar to path of test harnesses and artifacts
+        :param test_env: envvar to path of test harnesses and artifacts, default is $TESTBED
         """
 
         env: str = os.environ.get(test_env)
@@ -62,6 +64,10 @@ class Client(object):
 
         # get all test workspaces from testbed directory
         self.test_paths: List[str] = [testdir[0] for testdir in os.walk(env)]
+
+        # get env for overwritten service host and port
+        server_env: Optional[str] = os.environ.get("SERVER")
+        self.server_addr: str = "0.0.0.0:1234" if server_env is None else server_env
 
 
     @staticmethod
@@ -90,7 +96,7 @@ class Client(object):
         """
         Creates a new workspace in the testbed environment path. If no configuration and harness(es) is provided,
         the client will initialize default ones for the user. Returns the abspath to the new testbed if successfully
-        initialized.
+        initialized. Does NOT communicate with the orchestrator API.
 
         :param ws_name: name of workspace directory.
         :param config_path: optional path to configuration file to consume be consumed by DeepState executor.
@@ -192,29 +198,71 @@ class Client(object):
         return ws_name
 
 
+    def init_container(ws_name: str, _job_name: Optional[str]) -> Union[bool, Tuple[bool, str]]:
+        """
+        Sends a POST request to /api/init in order to provision a new
+        container job.
+
+        :param ws_name: string name of workspace to test
+        :param job_name: optional identifier
+        """
+
+        # create pseudorandom id if not specified
+        job_name: str = "worker_".format(random.choice(string.ascii_lowercase + string.digits) for _ in range(4)) \
+                        if not _job_name else _job_name
+        LOGGER.debug("Job name: {}".format(job_name))
+
+        # send a POST request with necessary parameters
+        # TODO: fine-grained config, like specific harness and/or test
+        payload: Dict[str, str] = dict({
+            "job_name": job_name,
+            "test": ws_name
+        })
+
+        LOGGER.debug("Payload info: {}".format(payload))
+
+        r = requests.post(self.server_addr, data=payload)
+
+        # check for correct status code
+        status = r.status_code
+        if status != 200:
+            reason: str = "failed with status {}".format(status)
+            return (False, str(reason))
+
+        # now parse out response
+        response = vars(r.json())
+        if response["status"] != "success":
+            return (False, response["reason"])
+
+        return True
+
+
+    WorkspaceInfo = Dict[str, Union[str, bool]]
+
     @property
-    def workspaces(self) -> Optional[List[str]]:
+    def workspaces(self) -> Optional[WorkspaceInfo]:
         """
-        Sends a GET request to /api/workspaces in order to retrieve workspace information. Assert if
-        tests on container-accessed volume is same on self.test_paths, in case there are "orphaned"
-        workspaces.
+        Parses out information for existing workspaces. Does NOT communicate with orchestrator server,
+        since workspaces are all on shared volume.
         """
-        return self.test_paths
+
+        # TODO: more verbose - how many harnesses, and tests composing th harnesses
+        workspaces: List[WorkspaceInfo] = [
+            dict({
+                "name": name,
+                "path": os.path.join(self.env, name),
+                "includes_corpus": os.path.isdir("input")
+            })
+            for name in self.test_paths
+        ]
+        return workspaces
 
 
-    def execute(self, workspace: str, job_name: str) -> None:
-        pass
-
-
-    def get_process(self, job_name: Optional[str]) -> None:
+    def get_process(self, job_name: Optional[str]) -> Dict[str, Any]:
         """
         Sends a GET request to /api/process/<job_name> in order to retrieve specific information about a process.
         If job_name is not specified, general information will be outputted regarding every single active worker.
 
         :param job_name: name of worker job that is active to introspect
         """
-
-        if job_name is None:
-            LOGGER.info("No specific job name specified. Outputting information for all.")
-
-        pass
+        r = request.get(self.server_addr)
