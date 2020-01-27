@@ -6,7 +6,7 @@ RUN chown -R fuzzer:fuzzer /home/fuzzer
 
 # Switch to user work directory, and copy over workspace
 USER fuzzer
-WOKRDIR /home/fuzzer
+WORKDIR /home/fuzzer
 COPY . /home/fuzzer/openssl
 
 
