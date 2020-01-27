@@ -66,7 +66,7 @@ RUN chown -R {USER}:{USER} /home/{USER}
 
 # Switch to user work directory, and copy over workspace
 USER {USER}
-WOKRDIR /home/{USER}
+WORKDIR /home/{USER}
 COPY . /home/{USER}/{WS_NAME}
 
 
